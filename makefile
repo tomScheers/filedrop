@@ -1,7 +1,7 @@
 PROGRAM = filedrop
 
 CC := clang
-CFLAGS := -Wall -Wextra -Iinclude
+CFLAGS := -Wall -Wextra -Iinclude -fsanitize=address,undefined
 SRC := $(wildcard src/*.c)
 OBJ := $(patsubst src/%.c, build/%.o, $(SRC))
 BIN := bin/$(PROGRAM)
