@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-fd_file *fd_parse_file(char *file_path) {
+fdr_file *fdr_parse_file(char *file_path) {
   FILE *file = fopen(file_path, "rb");
   if (file == NULL) {
     return NULL;
   }
-  fd_file *transfer_file = malloc(sizeof(*transfer_file));
+  fdr_file *transfer_file = malloc(sizeof(*transfer_file));
 
   fseek(file, 0, SEEK_END);
   transfer_file->f_data_len = ftell(file);
