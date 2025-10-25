@@ -9,7 +9,11 @@
 #include <unistd.h>
 
 bool fdr_send_file(fdr_file *file) {
-  int servSock = socket(AF_INET, SOCK_STREAM, 0);
+  int clientSock;
+  int servSock;
+  struct sockaddr_in servAddr;
+
+  servSock = socket(AF_INET, SOCK_STREAM, 0);
   if (servSock == -1) {
     perror("socket");
     return false;
@@ -21,64 +25,58 @@ bool fdr_send_file(fdr_file *file) {
   // closed
   if (setsockopt(servSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
     perror("setsockopt");
-    close(servSock);
-    return false;
+    goto e2;
   }
 
-  struct sockaddr_in servAddr;
   servAddr.sin_family = AF_INET;
   servAddr.sin_port = htons(PORT);
   servAddr.sin_addr.s_addr = INADDR_ANY;
 
   if (bind(servSock, (struct sockaddr *)&servAddr, sizeof(servAddr)) == -1) {
     perror("bind");
-    close(servSock);
-    return false;
+    goto e2;
   }
 
   if (listen(servSock, 1) == -1) {
     perror("listen");
-    close(servSock);
-    return false;
+    goto e2;
   }
 
-  int clientSock = accept(servSock, NULL, NULL);
+  clientSock = accept(servSock, NULL, NULL);
   if (clientSock == -1) {
     perror("accept");
-    close(servSock);
-    return false;
+    goto e1;
   }
 
   if (send(clientSock, &file->f_data_len, sizeof(file->f_data_len), 0) == -1) {
     perror("send");
-    close(clientSock);
-    close(servSock);
-    return false;
+    goto e1;
   }
 
   size_t f_name_len = strlen(file->f_name);
+
   if (send(clientSock, &f_name_len, sizeof(f_name_len), 0) == -1) {
     perror("send");
-    close(clientSock);
-    close(servSock);
-    return false;
+    goto e1;
   }
 
   if (send(clientSock, file->f_name, f_name_len, 0) == -1) {
     perror("send");
-    close(clientSock);
-    close(servSock);
-    return false;
+    goto e1;
   }
 
   if (send(clientSock, file->f_data, file->f_data_len, 0) == -1) {
     perror("send");
-    close(clientSock);
-    close(servSock);
-    return false;
+    goto e1;
   }
 
   close(servSock);
   close(clientSock);
   return true;
+
+e1:
+  close(clientSock);
+e2:
+  close(servSock);
+  return false;
 }

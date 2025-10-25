@@ -9,9 +9,17 @@
 #include <unistd.h>
 
 fdr_file *fdr_receive_file() {
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-
+  fdr_file *file;
+  int sock;
   struct sockaddr_in serv_addr;
+  size_t f_name_len;
+
+  sock = socket(AF_INET, SOCK_STREAM, 0);
+
+  if (!sock) {
+    perror("socket");
+    goto e3;
+  }
 
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_port = htons(PORT);
@@ -19,37 +27,57 @@ fdr_file *fdr_receive_file() {
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
     perror("connect");
-    close(sock);
-    return NULL;
+    goto e3;
   }
 
-  size_t f_data_len;
-  size_t f_name_len;
-  char *f_name;
-  unsigned char *f_data;
+  file = malloc(sizeof(*file));
 
-  recv(sock, &f_data_len, sizeof(f_data_len), 0);
-  recv(sock, &f_name_len, sizeof(f_name_len), 0);
+  if (!file) {
+    perror("malloc");
+    goto e3;
+  }
 
-  f_name = malloc(f_name_len + 1);
-  f_data = malloc(f_data_len);
+  if (recv(sock, &file->f_data_len, sizeof(file->f_data_len), 0) == -1) {
+    perror("recv");
+    goto e2;
+  }
 
-  recv(sock, f_name, f_name_len, 0);
-  recv(sock, f_data, f_data_len, 0);
+  if (recv(sock, &f_name_len, sizeof(f_name_len), 0) == -1) {
+    perror("recv");
+    goto e2;
+  }
 
-  printf("data_len %zu\n", f_data_len);
-  printf("name_len %zu\n", f_name_len);
-  printf("f_name %.*s\n", (int)f_name_len, f_name);
-  printf("f_data %.*s\n", (int)f_data_len, f_data);
+  file->f_data = malloc(file->f_data_len);
+  if (!file->f_data) {
+    perror("malloc");
+    goto e2;
+  }
 
-  fdr_file *file = malloc(sizeof(*file));
+  if (recv(sock, file->f_name, f_name_len, 0) == -1) {
+    perror("recv");
+    goto e3;
+  }
 
-  file->f_data = f_data;
-  file->f_name = f_name;
+  if (recv(sock, file->f_data, file->f_data_len, 0) == -1) {
+    perror("recv");
+    goto e3;
+  }
+
+  if (!file) {
+    perror("malloc");
+    goto e1;
+  }
+
   file->f_name[f_name_len] = '\0';
-  file->f_data_len = f_data_len;
 
   close(sock);
-
   return file;
+
+e1:
+  free(file->f_data);
+e2:
+  free(file);
+e3:
+  close(sock);
+  return NULL;
 }

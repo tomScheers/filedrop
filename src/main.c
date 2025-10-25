@@ -7,17 +7,18 @@
 int main(int argc, char **argv) {
   if (argc < 2) {
     printf("Usage: %s [send/receive] [options]", argv[0]);
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   if (strcmp(argv[1], "send") == 0) {
     if (argc < 3) {
       printf("Usage: %s %s [file] [options]", argv[0], argv[1]);
-      return 0;
+      return EXIT_SUCCESS;
     }
     fdr_file *file = fdr_parse_file(argv[2]);
+
     if (!file) {
-      return 1;
+      return EXIT_FAILURE;
     }
 
     printf("File content: %s\n", file->f_data);
@@ -31,22 +32,15 @@ int main(int argc, char **argv) {
   } else if (strcmp(argv[1], "receive") == 0) {
     fdr_file *received_file = fdr_receive_file();
 
-    FILE *file_d = fopen(received_file->f_name, "wb");
-
-    if (!file_d) {
-      perror("fopen");
-      free(received_file->f_name);
-      free(received_file->f_data);
-      free(received_file);
+    if (!received_file) {
       return EXIT_FAILURE;
     }
 
-    fwrite(received_file->f_data, 1, received_file->f_data_len, file_d);
+    bool save_status = fdr_save_file(received_file);
 
-    free(received_file->f_name);
-    free(received_file->f_data);
-    free(received_file);
-    fclose(file_d);
+    if (save_status == false) {
+      return EXIT_FAILURE;
+    }
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
