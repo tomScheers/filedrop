@@ -3,9 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-bool fdr_save_file(fdr_file *received_file) {
+bool fdr_save_file(fdr_file *received_file, char *output_file_path) {
   bool ret_status = true;
-  FILE *file_d = fopen(received_file->f_name, "wb");
+  FILE *file_d;
+  if (!output_file_path)
+    file_d = fopen(received_file->f_name, "wb");
+  else
+    file_d = fopen(output_file_path, "wb");
 
   if (!file_d) {
     perror("fopen");

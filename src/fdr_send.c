@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-bool fdr_send_file(fdr_file *file) {
+bool fdr_send_file(fdr_file *file, uint16_t port) {
   int clientSock;
   int servSock;
   struct sockaddr_in servAddr;
@@ -29,7 +29,7 @@ bool fdr_send_file(fdr_file *file) {
   }
 
   servAddr.sin_family = AF_INET;
-  servAddr.sin_port = htons(PORT);
+  servAddr.sin_port = htons(port);
   servAddr.sin_addr.s_addr = INADDR_ANY;
 
   if (bind(servSock, (struct sockaddr *)&servAddr, sizeof(servAddr)) == -1) {

@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-fdr_file *fdr_receive_file() {
+fdr_file *fdr_receive_file(struct in_addr ip_addr, uint16_t port) {
   fdr_file *file;
   int sock;
   struct sockaddr_in serv_addr;
@@ -22,8 +22,8 @@ fdr_file *fdr_receive_file() {
   }
 
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port = htons(PORT);
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_port = htons(port);
+  serv_addr.sin_addr = ip_addr;
 
   if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1) {
     perror("connect");
