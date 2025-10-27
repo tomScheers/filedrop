@@ -19,11 +19,14 @@ int main(int argc, char **argv) {
       return EXIT_SUCCESS;
     }
 
-    int err;
-    struct SendSettings settings = parse_send_settings(argc, argv, &err);
+    enum ArgParseStatus status;
+    struct SendSettings settings = parse_send_settings(argc, argv, &status);
 
-    if (err)
+    if (status == ERR)
       return EXIT_FAILURE;
+
+    if (status == HELP_MENU)
+      return EXIT_SUCCESS;
 
     if (settings.file_path == NULL) {
       fprintf(stderr, "Send requires a file path to send\n");
@@ -35,12 +38,16 @@ int main(int argc, char **argv) {
     return send_file_handle(settings);
 
   } else if (strcmp(argv[1], "receive") == 0) {
-    int err;
 
-    struct ReceiveSettings settings = parse_recv_settings(argc, argv, &err);
+    enum ArgParseStatus status;
 
-    if (err)
+    struct ReceiveSettings settings = parse_recv_settings(argc, argv, &status);
+
+    if (status == ERR)
       return EXIT_FAILURE;
+
+    if (status == HELP_MENU)
+      return EXIT_SUCCESS;
 
     printf("port: %d\n", settings.port);
     printf("output_path: %s\n", settings.output_file_path);

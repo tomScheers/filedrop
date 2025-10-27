@@ -23,6 +23,12 @@ typedef struct {
   char f_name[FILENAME_MAX];
 } fdr_file;
 
+enum ArgParseStatus {
+  OK = 0,
+  ERR,
+  HELP_MENU,
+};
+
 fdr_file *fdr_parse_file(char *file_path);
 fdr_file *fdr_receive_file(struct in_addr ip_addr, uint16_t port);
 
@@ -32,7 +38,9 @@ bool fdr_save_file(fdr_file *received_file, char *output_file_path);
 int send_file_handle(struct SendSettings settings);
 int receive_file_handle(struct ReceiveSettings settings);
 
-struct SendSettings parse_send_settings(int argc, char **argv, int *error);
-struct ReceiveSettings parse_recv_settings(int argc, char **argv, int *error);
+struct SendSettings parse_send_settings(int argc, char **argv,
+                                        enum ArgParseStatus *status);
+struct ReceiveSettings parse_recv_settings(int argc, char **argv,
+                                           enum ArgParseStatus *status);
 
 #endif
