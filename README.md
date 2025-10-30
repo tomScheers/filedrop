@@ -13,7 +13,7 @@ The binary will be located at ./bin/filedrop
 ## Usage
 If you want to share a file with someone you would run the following:
 ```bash
-bin/filedrop send
+bin/filedrop send [FILE PATH]
 ```
 
 Now, for the user receiving it:
